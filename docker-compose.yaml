@@ -1,0 +1,58 @@
+version: "3"
+services:
+
+  frontend:
+    image: web-analisador
+    container_name: web-analisador
+    build:
+      context: ./web
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./web:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - 3000:3000
+    depends_on:
+      - backend
+
+  backend:
+    image: api-analisador
+    container_name: api-analisador
+    build:
+      context: ./api
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./api:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - 4000:4000
+    depends_on:
+      - database
+
+  database:
+    container_name: db-analisador
+    image: postgres:15
+    ports:
+      - 5432:5432
+    env_file:
+      - ./api/.env
+    volumes:
+      - pgdata:/var/lib/postgresql/data/
+      - ./api/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: sysdba
+    ports:
+      - "16543:80"
+    depends_on:
+      - database
+    volumes:
+      - ./.docker/data/pgadmin:/root/.pgadmin
+
+volumes:
+  pgdata:

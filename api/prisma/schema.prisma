@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// generator client {
+//   provider = "prisma-client-js"
+//   // binaryTargets = ["native"]
+// }
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Perfil {
+  id              String            @id @default(uuid())
+  nome            String
+  descricao       String?
+  ativo           Boolean           @default(true)
+  usuarios        Usuario[]
+  permissoes      PerfilPermissao[]
+  dataCriacao     DateTime?         @default(now())
+  dataAtualizacao DateTime?         @updatedAt
+
+  @@map("perfil")
+}
+
+model Usuario {
+  id              String    @id @default(uuid())
+  nome            String
+  email           String    @unique
+  password        String?
+  refreshToken    String?
+  perfil          Perfil?   @relation(fields: [perfilId], references: [id])
+  perfilId        String?
+  dataCriacao     DateTime? @default(now())
+  dataAtualizacao DateTime? @updatedAt
+
+  @@map("usuario")
+}
+
+model PerfilModulo {
+  id                   String                 @id @default(uuid())
+  nome                 String
+  descricao            String?
+  perfilFuncionalidade PerfilFuncionalidade[]
+  dataCriacao          DateTime?              @default(now())
+  dataAtualizacao      DateTime?              @updatedAt
+
+  @@map("perfil_modulo")
+}
+
+model PerfilFuncionalidade {
+  id              String            @id @default(uuid())
+  nome            String
+  descricao       String?
+  modulo          PerfilModulo?     @relation(fields: [moduloId], references: [id])
+  moduloId        String
+  permissoes      PerfilPermissao[]
+  dataCriacao     DateTime?         @default(now())
+  dataAtualizacao DateTime?         @updatedAt
+
+  @@map("perfil_funcionalidade")
+}
+
+model PerfilPermissao {
+  id                     String                @id @default(uuid())
+  perfil                 Perfil?               @relation(fields: [perfilId], references: [id])
+  perfilId               String?
+  perfilFuncionalidade   PerfilFuncionalidade? @relation(fields: [perfilFuncionalidadeId], references: [id])
+  perfilFuncionalidadeId String?
+  inserir                Boolean               @default(false)
+  consultar              Boolean               @default(false)
+  alterar                Boolean               @default(false)
+  excluir                Boolean               @default(false)
+  dataCriacao            DateTime?             @default(now())
+  dataAtualizacao        DateTime?             @updatedAt
+
+  @@map("perfil_permissao")
+}
